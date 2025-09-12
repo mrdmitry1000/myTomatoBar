@@ -120,12 +120,20 @@ class TBTimer: ObservableObject {
     }
 
     func updateTimeLeft() {
-        timeLeftString = timerFormatter.string(from: Date(), to: finishTime)!
-        if timer != nil, showTimerInMenuBar {
-            TBStatusItem.shared.setTitle(title: timeLeftString)
+        // Проверяем состояние машины состояний
+        if stateMachine.state == .idle {
+            timeLeftString = ""
+        } else if let finishTime = finishTime {
+            // Таймер активен и finishTime установлен
+            timeLeftString = timerFormatter.string(from: Date(), to: finishTime) ?? "00:00"
         } else {
-            TBStatusItem.shared.setTitle(title: nil)
+            // Неожиданное состояние - таймер должен быть активен, но finishTime nil
+            timeLeftString = "00:00"
+            print("⚠️ Warning: Timer state is not idle but finishTime is nil")
         }
+        
+        // Отправляем уведомление для обновления UI
+        NotificationCenter.default.post(name: .timerUpdated, object: self)
     }
 
     private func startTimer(seconds: Int) {
@@ -227,3 +235,54 @@ class TBTimer: ObservableObject {
         consecutiveWorkIntervals = 0
     }
 }
+// MARK: - TimerProtocol Conformance
+extension TBTimer: TimerProtocol {
+    var isRunning: Bool {
+        return timer != nil
+    }
+    
+    var currentTime: TimeInterval {
+        guard let finishTime = finishTime else { return 0 }
+        let timeLeft = finishTime.timeIntervalSince(Date())
+        return max(0, timeLeft)
+    }
+    
+    var displayText: String {
+        if timeLeftString.isEmpty {
+            return "25:00" // Значение по умолчанию
+        }
+        return timeLeftString
+    }
+    
+    func start() {
+        if stateMachine.state == .idle {
+            startStop()
+        }
+    }
+    
+    func pause() {
+        if isRunning {
+            startStop()
+        }
+    }
+    
+    func stop() {
+        if stateMachine.state != .idle {
+            startStop()
+        }
+    }
+    
+    func reset() {
+        if stateMachine.state != .idle {
+            startStop()
+        }
+        // Дополнительная логика сброса если нужна
+        consecutiveWorkIntervals = 0
+    }
+}
+
+// MARK: - Singleton Access
+extension TBTimer {
+    static let shared = TBTimer()
+}
+

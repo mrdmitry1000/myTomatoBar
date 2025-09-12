@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AB180F62E74317E0020D771 /* NotificationName+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB180F52E7431740020D771 /* NotificationName+Extensions.swift */; };
+		0AB180F82E7432060020D771 /* Stopwatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB180F72E7432000020D771 /* Stopwatch.swift */; };
+		0AB180FA2E74324F0020D771 /* TimerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB180F92E7432480020D771 /* TimerManager.swift */; };
+		0AB180FD2E7432800020D771 /* TimerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB180FC2E74327F0020D771 /* TimerProtocol.swift */; };
 		8A21B78C27EE31A20009E5DB /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21B78B27EE31A20009E5DB /* App.swift */; };
 		8A21B78E27EE31A20009E5DB /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21B78D27EE31A20009E5DB /* View.swift */; };
 		8A21B79027EE31A30009E5DB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A21B78F27EE31A30009E5DB /* Assets.xcassets */; };
@@ -22,6 +26,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0AB180F42E742B1D0020D771 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		0AB180F52E7431740020D771 /* NotificationName+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationName+Extensions.swift"; sourceTree = "<group>"; };
+		0AB180F72E7432000020D771 /* Stopwatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stopwatch.swift; sourceTree = "<group>"; };
+		0AB180F92E7432480020D771 /* TimerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerManager.swift; sourceTree = "<group>"; };
+		0AB180FC2E74327F0020D771 /* TimerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerProtocol.swift; sourceTree = "<group>"; };
 		8A21B78827EE31A20009E5DB /* myTomatoBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myTomatoBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A21B78B27EE31A20009E5DB /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		8A21B78D27EE31A20009E5DB /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
@@ -70,11 +79,15 @@
 		8A21B78A27EE31A20009E5DB /* TomatoBar */ = {
 			isa = PBXGroup;
 			children = (
+				0AB180F52E7431740020D771 /* NotificationName+Extensions.swift */,
 				8A21B78B27EE31A20009E5DB /* App.swift */,
 				8AEE49AE2AA75A5E00243D2F /* Log.swift */,
 				8A21B78D27EE31A20009E5DB /* View.swift */,
 				8A9F700827EE396E0012A1EC /* State.swift */,
+				0AB180F72E7432000020D771 /* Stopwatch.swift */,
+				0AB180F92E7432480020D771 /* TimerManager.swift */,
 				8A9F701827EE3DAF0012A1EC /* Timer.swift */,
+				0AB180FC2E74327F0020D771 /* TimerProtocol.swift */,
 				8A9F701E27EE536D0012A1EC /* Player.swift */,
 				8AA5B3F12812A74600BE1A6C /* Notifications.swift */,
 				8A21B78F27EE31A30009E5DB /* Assets.xcassets */,
@@ -140,6 +153,7 @@
 				en,
 				Base,
 				"zh-Hans",
+				ru,
 			);
 			mainGroup = 8A21B77F27EE31A20009E5DB;
 			packageReferences = (
@@ -197,8 +211,12 @@
 			files = (
 				8A9F701F27EE536D0012A1EC /* Player.swift in Sources */,
 				8AEE49AF2AA75A5E00243D2F /* Log.swift in Sources */,
+				0AB180F62E74317E0020D771 /* NotificationName+Extensions.swift in Sources */,
+				0AB180F82E7432060020D771 /* Stopwatch.swift in Sources */,
 				8A21B78E27EE31A20009E5DB /* View.swift in Sources */,
 				8A9F701927EE3DAF0012A1EC /* Timer.swift in Sources */,
+				0AB180FA2E74324F0020D771 /* TimerManager.swift in Sources */,
+				0AB180FD2E7432800020D771 /* TimerProtocol.swift in Sources */,
 				8A21B78C27EE31A20009E5DB /* App.swift in Sources */,
 				8AA5B3F22812A74600BE1A6C /* Notifications.swift in Sources */,
 				8A9F700927EE396E0012A1EC /* State.swift in Sources */,
@@ -213,6 +231,7 @@
 			children = (
 				8AA54346293094AB002A47FC /* en */,
 				C4C8DE0E2930DBB4003B1110 /* zh-Hans */,
+				0AB180F42E742B1D0020D771 /* ru */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

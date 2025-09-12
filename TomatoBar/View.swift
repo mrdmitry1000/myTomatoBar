@@ -2,6 +2,30 @@ import KeyboardShortcuts
 import LaunchAtLogin
 import SwiftUI
 
+// MARK: - Timer Mode Selection
+private struct TimerModeView: View {
+    @StateObject private var timerManager = TimerManager.shared
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(NSLocalizedString("TimerMode.title", comment: "Timer Mode"))
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            Picker("Timer Mode", selection: Binding(
+                get: { timerManager.currentMode },
+                set: { timerManager.switchMode(to: $0) }
+            )) {
+                ForEach(TimerMode.allCases, id: \.self) { mode in
+                    Text(mode.localizedDisplayName).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: .infinity)
+        }
+    }
+}
+
 extension KeyboardShortcuts.Name {
     static let startStopTimer = Self("startStopTimer")
 }
@@ -126,31 +150,30 @@ private struct SoundsView: View {
 }
 
 private enum ChildView {
-    case intervals, settings, sounds
+    case timerMode    // Новый случай
+    case intervals
+    case settings
+    case sounds
 }
 
 struct TBPopoverView: View {
-    @ObservedObject var timer = TBTimer()
+    @ObservedObject var timer = TBTimer.shared
+    @StateObject private var timerManager = TimerManager.shared
     @State private var buttonHovered = false
-    @State private var activeChildView = ChildView.intervals
+    @State private var activeChildView = ChildView.timerMode
 
     private var startLabel = NSLocalizedString("TBPopoverView.start.label", comment: "Start label")
     private var stopLabel = NSLocalizedString("TBPopoverView.stop.label", comment: "Stop label")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            
+            // Главная кнопка старт/стоп
             Button {
-                timer.startStop()
+                handleStartStopAction()
                 TBStatusItem.shared.closePopover(nil)
             } label: {
-                Text(timer.timer != nil ?
-                     (buttonHovered ? stopLabel : timer.timeLeftString) :
-                        startLabel)
-                    /*
-                      When appearance is set to "Dark" and accent color is set to "Graphite"
-                      "defaultAction" button label's color is set to the same color as the
-                      button, making the button look blank. #24
-                     */
+                Text(getButtonText())
                     .foregroundColor(Color.white)
                     .font(.system(.body).monospacedDigit())
                     .frame(maxWidth: .infinity)
@@ -161,7 +184,9 @@ struct TBPopoverView: View {
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
 
+            // Picker для вкладок
             Picker("", selection: $activeChildView) {
+                Text("🍅⏱️").tag(ChildView.timerMode)
                 Text(NSLocalizedString("TBPopoverView.intervals.label",
                                        comment: "Intervals label")).tag(ChildView.intervals)
                 Text(NSLocalizedString("TBPopoverView.settings.label",
@@ -173,64 +198,169 @@ struct TBPopoverView: View {
             .frame(maxWidth: .infinity)
             .pickerStyle(.segmented)
 
-            GroupBox {
-                switch activeChildView {
-                case .intervals:
-                    IntervalsView().environmentObject(timer)
-                case .settings:
-                    SettingsView().environmentObject(timer)
-                case .sounds:
-                    SoundsView().environmentObject(timer.player)
-                }
-            }
+            // Адаптивный контент без GroupBox для экономии места
+            contentForActiveTab()
 
-            Group {
+            // Нижнее меню
+            VStack(spacing: 4) {
                 Button {
                     NSApp.activate(ignoringOtherApps: true)
                     NSApp.orderFrontStandardAboutPanel()
                 } label: {
-                    Text(NSLocalizedString("TBPopoverView.about.label",
-                                           comment: "About label"))
-                    Spacer()
-                    Text("⌘ A").foregroundColor(Color.gray)
+                    HStack {
+                        Text(NSLocalizedString("TBPopoverView.about.label", comment: "About label"))
+                        Spacer()
+                        Text("⌘ A").foregroundColor(Color.gray)
+                    }
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut("a")
+                
                 Button {
                     NSApplication.shared.terminate(self)
                 } label: {
-                    Text(NSLocalizedString("TBPopoverView.quit.label",
-                                           comment: "Quit label"))
-                    Spacer()
-                    Text("⌘ Q").foregroundColor(Color.gray)
+                    HStack {
+                        Text(NSLocalizedString("TBPopoverView.quit.label", comment: "Quit label"))
+                        Spacer()
+                        Text("⌘ Q").foregroundColor(Color.gray)
+                    }
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut("q")
             }
         }
-        #if DEBUG
-            /*
-             After several hours of Googling and trying various StackOverflow
-             recipes I still haven't figured a reliable way to auto resize
-             popover to fit all it's contents (pull requests are welcome!).
-             The following code block is used to determine the optimal
-             geometry of the popover.
-             */
-            .overlay(
-                GeometryReader { proxy in
-                    debugSize(proxy: proxy)
+        .frame(width: 240) // Только ширина фиксирована
+        .padding(12)
+        .fixedSize(horizontal: false, vertical: true) // Ключевая строка для адаптивной высоты
+    }
+    
+    // MARK: - Content Methods
+    
+    @ViewBuilder
+    private func contentForActiveTab() -> some View {
+        switch activeChildView {
+        case .timerMode:
+            TimerModeView()
+                .padding(.vertical, 4)
+                
+        case .intervals:
+            if timerManager.currentMode == .pomodoro {
+                IntervalsView()
+                    .environmentObject(timer)
+                    .padding(.vertical, 4)
+            } else {
+                StopwatchInfoView()
+                    .padding(.vertical, 4)
+            }
+            
+        case .settings:
+            SettingsView()
+                .environmentObject(timer)
+                .padding(.vertical, 4)
+                
+        case .sounds:
+            if timerManager.currentMode == .pomodoro {
+                SoundsView()
+                    .environmentObject(timer.player)
+                    .padding(.vertical, 4)
+            } else {
+                VStack {
+                    Text("Sound settings are available only for Pomodoro mode")
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding()
                 }
-            )
-        #endif
-            /* Use values from GeometryReader */
-//            .frame(width: 240, height: 276)
-            .padding(12)
+            }
+        }
+    }
+    
+    // Ваши helper методы остаются без изменений...
+    private func handleStartStopAction() {
+        switch timerManager.currentMode {
+        case .pomodoro:
+            timer.startStop()
+        case .stopwatch:
+            if timerManager.activeTimer.isRunning {
+                timerManager.pauseActiveTimer()
+            } else {
+                timerManager.startActiveTimer()
+            }
+        }
+    }
+    
+    private func getButtonText() -> String {
+        switch timerManager.currentMode {
+        case .pomodoro:
+            return timer.timer != nil ?
+                (buttonHovered ? stopLabel : timer.timeLeftString) :
+                startLabel
+        case .stopwatch:
+            let stopwatch = timerManager.activeTimer
+            if stopwatch.isRunning {
+                return buttonHovered ?
+                    NSLocalizedString("Stopwatch.pause", comment: "Pause") :
+                    stopwatch.displayText
+            } else {
+                return stopwatch.currentTime > 0 ?
+                    NSLocalizedString("Stopwatch.resume", comment: "Resume") :
+                    NSLocalizedString("Stopwatch.start", comment: "Start")
+            }
+        }
     }
 }
 
-#if DEBUG
-    func debugSize(proxy: GeometryProxy) -> some View {
-        print("Optimal popover size:", proxy.size)
-        return Color.clear
+// MARK: - Stopwatch Info View
+private struct StopwatchInfoView: View {
+    @ObservedObject private var timerManager = TimerManager.shared
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(NSLocalizedString("TimerMode.stopwatch", comment: "Stopwatch"))
+                    .font(.headline)
+                Spacer()
+                Text(timerManager.activeTimer.isRunning ?
+                     NSLocalizedString("Stopwatch.running", comment: "Running") :
+                     NSLocalizedString("Stopwatch.stopped", comment: "Stopped"))
+                    .font(.caption)
+                    .foregroundColor(timerManager.activeTimer.isRunning ? .green : .secondary)
+            }
+            
+            if let stopwatch = timerManager.activeTimer as? Stopwatch {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(NSLocalizedString("Stopwatch.currentTime", comment: "Current Time:"))
+                        Spacer()
+                        Text(stopwatch.displayText)
+                            .font(.system(.body).monospacedDigit())
+                    }
+                    
+                    HStack {
+                        Button(NSLocalizedString("Stopwatch.reset", comment: "Reset")) {
+                            stopwatch.reset()
+                        }
+                        .disabled(stopwatch.currentTime == 0 && !stopwatch.isRunning)
+                        
+                        Spacer()
+                        
+                        if stopwatch.isRunning {
+                            Button(NSLocalizedString("Stopwatch.pause", comment: "Pause")) {
+                                stopwatch.pause()
+                            }
+                        } else {
+                            Button(stopwatch.currentTime > 0 ?
+                                   NSLocalizedString("Stopwatch.resume", comment: "Resume") :
+                                   NSLocalizedString("Stopwatch.start", comment: "Start")) {
+                                stopwatch.start()
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Spacer().frame(minHeight: 0)
+        }
+        .padding(4)
     }
-#endif
+}
+
