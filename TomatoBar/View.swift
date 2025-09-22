@@ -31,7 +31,7 @@ extension KeyboardShortcuts.Name {
 }
 
 private struct IntervalsView: View {
-    @EnvironmentObject var timer: TBTimer
+    @EnvironmentObject var timer: PomodoroController
     private var minStr = NSLocalizedString("IntervalsView.min", comment: "min")
 
     var body: some View {
@@ -79,7 +79,7 @@ private struct IntervalsView: View {
 }
 
 private struct SettingsView: View {
-    @EnvironmentObject var timer: TBTimer
+    @EnvironmentObject var timer: PomodoroController
     @ObservedObject private var launchAtLogin = LaunchAtLogin.observable
 
     var body: some View {
@@ -157,7 +157,7 @@ private enum ChildView {
 }
 
 struct TBPopoverView: View {
-    @ObservedObject var timer = TBTimer.shared
+    @ObservedObject var timer = PomodoroController.shared
     @StateObject private var timerManager = TimerManager.shared
     @State private var buttonHovered = false
     @State private var activeChildView = ChildView.timerMode

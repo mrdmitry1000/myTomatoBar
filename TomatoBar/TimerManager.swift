@@ -29,7 +29,7 @@ class TimerManager: ObservableObject {
     var activeTimer: TimerProtocol {
         switch currentMode {
         case .pomodoro:
-            return TBTimer.shared
+            return PomodoroController.shared
         case .stopwatch:
             return Stopwatch.shared
         }
